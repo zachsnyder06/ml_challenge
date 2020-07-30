@@ -1,0 +1,133 @@
+--query one
+select custid, count(loanid)
+from all_loans
+group by custid;
+
+
+--query two
+select a.custid,
+       count(distinct a.loanid) as num_loans
+
+from all_loans as a
+
+left join all_loanshist as b
+on a.loanid = b.loanid
+
+where b.status = 'Active'
+
+group by a.custid
+
+having count(distinct a.loanid) > 1;
+
+
+--query three
+select loanid,
+       custid,
+       fn,
+       ln,
+       amount
+from all_loans
+where state = 'CA'
+ and fn in ('Matt', 'Kyle', 'Jessica', 'Mary')
+ and ln like 'Y%'
+ and approvedate > date '2019-01-01';
+
+
+
+
+--query four
+create TEMP TABLE temp1 AS
+
+select a.custid,
+       min(a.approvedate) as min_date
+from all_loans as a
+group by a.custid;
+
+create TEMP TABLE temp2 AS
+select a.custid,
+       a.loanid,
+       a.amount,
+       b.amount_paid,
+       b.status
+
+from all_loanshist b
+
+left join all_loans a
+on b.loanid = a.loanid
+
+left join temp1 c
+on a.custid = c.custid
+
+where a.approvedate = c.min_date
+      and b.snapshot_date < a.approvedate + interval '1 month' * 6;
+
+
+select custid,
+       sum(amount_paid)
+from temp2
+group by custid;
+
+
+
+--query five
+create TEMP TABLE temp1 AS
+
+select a.custid,
+       min(a.approvedate) as min_date
+from all_loans as a
+group by a.custid;
+
+--select * from temp1;
+
+create TEMP TABLE loan_amount AS
+select a.custid,
+       b.loanid,
+       b.amount
+ 
+from temp1 a
+
+left join all_loans b
+on a.custid = b.custid
+
+where b.approvedate < a.min_date + interval '1 month' * 6;
+
+
+create TEMP TABLE cust_amount AS
+select custid,
+       sum(amount)
+from loan_amount
+group by custid;
+
+
+create TEMP TABLE pmt_amounts AS
+select b.custid,
+       a.loanid,
+       a.totprincpaid,
+       a.amount_paid,
+       b.amount
+       
+from all_loanshist a
+
+left join loan_amount b
+on a.loanid = b.loanid;
+       
+
+select custid,
+       sum(amount_paid)/avg(amount) as ptg_paid
+
+from pmt_amounts
+group by custid;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
