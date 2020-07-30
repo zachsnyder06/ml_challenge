@@ -65,8 +65,7 @@ I'm getting rid of any variables that have more than 30% missing values.
 Also, I dropped emp_title and title because the values are too granular,
 and I dropped grade because the info is contained in sub_grade.
 
-I also decided to drop any row with NAs, this isn't necessary but
-makes the analysis easier
+I also dropped each row with an NA.
 '''
 pctg_na = df.isna().mean().sort_values(ascending = False).reset_index()
 vars_to_keep = pctg_na[pctg_na[0] < 0.3]
@@ -180,7 +179,7 @@ confusion_matrix = confusion_matrix(y_test, y_pred)
 
 
 '''
-Here's the code that 
+Here's the code that gets the importance of each variable used in the model.
 '''
 #print out importance of variables
 #importance_types = ['weight', 'gain', 'cover', 'total_gain', 'total_cover']
